@@ -11,15 +11,17 @@
 
       h1 {
         font-size: 50px;
+        padding-bottom: 1px;
         margin-top: 0;
         margin-bottom: 0px;
         font-weight: normal;
-        transition: background 1s ease, font-size 1s ease; /* Smooth transition for background and font-weight */
+        transition: background 0.1s ease, font-size 0.1s ease, padding-bottom 0.1s ease; /* Smooth transition for background and font-weight */
       }
 
       h1:hover {
         font-size: 51px;
         font-weight: 500;
+        padding-bottom: 0px;
         background: linear-gradient(90deg, #3b82f6, #22c55e, #0ea5e9); /* More contrasting colors */
         -webkit-background-clip: text;
         background-clip: text;
@@ -41,14 +43,32 @@
 
       input {
         font-size: 16px;
-        padding: 5px;
-        margin-right: 10px;
+        padding: 5px 10px;
+        margin-right: 5px;
         border: 1px solid #ccc;
         border-radius: 10px;
       }
 
       ul {
         padding-left: 2px;
+      }
+
+      /* Button styling */
+      button {
+        background-color: #008CBA; /* Blue background */
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #005f6a;
       }
 
     </style>
@@ -61,7 +81,7 @@
       </a>
     </p>
     <a href="https://xkcd.com" target="_blank" rel="noopener noreferrer">
-      <img id="comic" src="" alt="Comic Image">
+      <img id="comic" src="https://xkcd-api.ridvanaltun.vercel.app/api/comics/latest?img=true" alt="Comic Image">
     </a>
     <div id="todo-container">
       <h2>Daily To-Do List</h2>
@@ -70,16 +90,5 @@
       <ul id="todo-list"></ul>
     </div>
     <script src="newtab.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const displayTime = document.getElementById('display-time');
-        const codingContainer = document.getElementById('coding-time-container');
-
-        if (!displayTime || displayTime.textContent.trim() === '') {
-          codingContainer.style.display = 'none';
-          console.log('No coding time found');
-        }
-      });
-    </script>
   </body>
 </html>

@@ -1,30 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Custom New Tab",
+  "name": "XKCDwakaDo",
   "version": "1.0",
-  "description": "A custom new tab page extension",
-  "background": {
-    "service_worker": "background.js"
-  },
-  "permissions": [
-    "tabs",
-    "commands"
-  ],
-  "commands": {
-    "trigger-content-script": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+Y"
-      },
-      "description": "Trigger the content script"
-    }
+  "description": "A custom new tab page extension with XKCD and WakaTime integrations along with a todo list",
+  "icons": {
+    "16": "images/icon-16.png",
+    "32": "images/icon-32.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
   },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ]
+  }
 }

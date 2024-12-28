@@ -1,65 +1,53 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const imgElement = document.getElementById('comic');
-  
-    fetch('https://xkcd.com/info.0.json')
-      .then(response => response.json())
-      .then(data => {
-        imgElement.src = data.img;
-        imgElement.alt = data.alt;
-      })
-      .catch(error => {
-        console.error('Error fetching the comic:', error);
-      });
-
-    // Check if 'userInput' exists in localStorage
     let name = localStorage.getItem('name');
     let id = localStorage.getItem('id');
 
     if (!name) {
-      // Prompt the user for input
-      let userInput = prompt("Please enter your name:").toLowerCase();
-      
-      // Store the input in localStorage
+      let userInput = prompt("Please enter your name:");
+      if (userInput != null) {
+        userInput = userInput.toLowerCase();
+      }
       localStorage.setItem('name', userInput);
       name = userInput;
     }
 
     if (!id) {
-      // Prompt the user for input
       let userInput = prompt("Please enter your hackatime username (hit cancel if you don't have one):");
       
-      // Store the input in localStorage
       localStorage.setItem('id', userInput);
       id = userInput;
     }
 
-    // Display the input in the HTML
     document.getElementById('display-input').textContent = name;
     console.log(id);
 
-    if (id != 'null') {
-      document.getElementById('coding-time-link').textContent = 'coding time today: ';
-      //document.getElementById('display-id').textContent = id;
-      fetch('https://waka.hackclub.com/api/compat/wakatime/v1/users/'+id+'/stats/today')
+    if (id !== 'null' && id !== null) {
+      
+      fetch(`https://waka.hackclub.com/api/compat/wakatime/v1/users/${id}/stats/today`)
         .then(response => response.json())
         .then(data => {
-          document.getElementById('display-time').textContent = data.data.human_readable_total;
+          const codingTimeLink = document.getElementById('coding-time-link');
+          if (codingTimeLink) {
+            codingTimeLink.textContent = 'coding time today: ' + data.data.human_readable_total;
+          }
+          console.log(data.data.human_readable_total);
         })
         .catch(error => {
-          console.error('Error fetching the data:', error);
+          console.log('Error fetching the data:', error);
         });
     }
 
     if (id == null) {
-      document.getElementById('coding-time-link').textContent = '';
+      const codingTimeLink = document.getElementById('coding-time-link');
+      if (codingTimeLink) {
+        codingTimeLink.textContent = '';
+      }
     }
-    // Get today's date in YYYY-MM-DD format
     function getTodayDate() {
       const today = new Date();
       return today.toISOString().split('T')[0];
     }
 
-    // Check and reset todos if it's a new day
     function checkAndResetTodos() {
       const storedDate = localStorage.getItem('todoDate');
       const today = getTodayDate();
@@ -73,15 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    // Initialize todo list from localStorage
     let todos = [];
 
-    // Function to render todos
     function renderTodos() {
       const todoList = document.getElementById('todo-list');
       todoList.innerHTML = '';
       
-      // Sort todos: incomplete first, completed last
       const sortedTodos = todos.sort((a, b) => a.completed - b.completed);
       
       sortedTodos.forEach((todo, index) => {
@@ -114,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Add todo event
     document.getElementById('add-todo').addEventListener('click', () => {
       const todoInput = document.getElementById('todo-input');
       const newTodoText = todoInput.value.trim();
@@ -126,7 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // On page load
+    document.addEventListener("DOMContentLoaded", function() {
+      const codingContainer = document.getElementById('coding-time-container');
+
+    });
+
     window.onload = () => {
       checkAndResetTodos();
       renderTodos();
