@@ -1,36 +1,34 @@
 document.addEventListener('DOMContentLoaded', function() {
     let name = localStorage.getItem('name');
     let id = localStorage.getItem('id');
-
-    if (!name) {
-      let userInput = prompt("Please enter your name:");
-      if (userInput != null) {
-        userInput = userInput.toLowerCase();
-      }
-      localStorage.setItem('name', userInput);
-      name = userInput;
-    }
-
-    if (!id) {
-      let userInput = prompt("Please enter your hackatime username (hit cancel if you don't have one):");
-      
-      localStorage.setItem('id', userInput);
-      id = userInput;
-    }
+    let apiUrl = localStorage.getItem('apiUrl');
 
     document.getElementById('display-input').textContent = name;
     console.log(id);
 
-    if (id !== 'null' && id !== null) {
+    if (id !== 'null' && id !== null && apiUrl !== '') {
+      let apiKey = localStorage.getItem('id');
       
-      fetch(`https://waka.hackclub.com/api/compat/wakatime/v1/users/${id}/stats/today`)
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+      
+      fetch(`${apiUrl}/users/${id}/statusbar/today`, {
+        method: 'GET',
+        headers: headers
+      })
         .then(response => response.json())
         .then(data => {
           const codingTimeLink = document.getElementById('coding-time-link');
           if (codingTimeLink) {
-            codingTimeLink.textContent = 'coding time today: ' + data.data.human_readable_total;
+            codingTimeLink.textContent = 'coding time today: ' + data.data.grand_total.text;
+            codingTimeLink.href = new URL(apiUrl).origin;
           }
-          console.log(data.data.human_readable_total);
+          console.log(data);
         })
         .catch(error => {
           console.log('Error fetching the data:', error);
@@ -43,80 +41,195 @@ document.addEventListener('DOMContentLoaded', function() {
         codingTimeLink.textContent = '';
       }
     }
-    function getTodayDate() {
-      const today = new Date();
-      return today.toISOString().split('T')[0];
+    function loadTodos() {
+      todos = JSON.parse(localStorage.getItem('todos')) || [];
     }
 
-    function checkAndResetTodos() {
-      const storedDate = localStorage.getItem('todoDate');
-      const today = getTodayDate();
+    function saveTodos() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
 
-      if (storedDate !== today) {
-        localStorage.setItem('todos', JSON.stringify([]));
-        localStorage.setItem('todoDate', today);
-        todos = [];
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+      } else if (date.toDateString() === tomorrow.toDateString()) {
+        return 'Tomorrow';
       } else {
-        todos = JSON.parse(localStorage.getItem('todos')) || [];
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
       }
     }
 
     let todos = [];
 
+    fetch('https://xkcd-api-ridvanaltun.vercel.app/api/comics/latest')
+      .then(response => response.json())
+      .then(data => {
+        const comicImage = document.getElementById('comic');
+        const comicTitle = document.getElementById('comic-title');
+        const comicAlt = document.getElementById('comic-alt');
+
+        comicImage.src = data.img;
+        comicTitle.textContent = data.title;
+        comicAlt.textContent = data.alt;
+      });
+
     function renderTodos() {
       const todoList = document.getElementById('todo-list');
       todoList.innerHTML = '';
       
-      const sortedTodos = todos.sort((a, b) => a.completed - b.completed);
+      const sortedTodos = todos.sort((a, b) => {
+        if (a.completed !== b.completed) {
+          return a.completed - b.completed;
+        }
+        
+        if (a.date && b.date) {
+          const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+          const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+          const dateA = new Date(yearA, monthA - 1, dayA);
+          const dateB = new Date(yearB, monthB - 1, dayB);
+          return dateA - dateB;
+        } else if (a.date && !b.date) {
+          return -1;
+        } else if (!a.date && b.date) {
+          return 1; 
+        }
+        
+        return 0;
+      });
       
-      sortedTodos.forEach((todo, index) => {
+      sortedTodos.forEach((todo, originalIndex) => {
         const li = document.createElement('li');
-        li.style.display = 'flex';
-        li.style.alignItems = 'center';
-        li.style.marginBottom = '5px';
+        li.className = 'newtab-li' + (todo.completed ? ' completed' : '');
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = todo.completed;
-        checkbox.style.marginRight = '10px';
-        checkbox.style.backgroundColor = '#ffffff';
         checkbox.onclick = () => {
-          todos[index].completed = checkbox.checked;
-          localStorage.setItem('todos', JSON.stringify(todos));
-          renderTodos();
+          const todoIndex = todos.findIndex(t => 
+            t.text === todo.text && 
+            t.date === todo.date && 
+            t.completed === todo.completed
+          );
+          if (todoIndex !== -1) {
+            todos[todoIndex].completed = checkbox.checked;
+            saveTodos();
+            renderTodos();
+          }
         };
         
-        const span = document.createElement('span');
-        span.textContent = todo.text;
-        if (todo.completed) {
-          span.style.textDecoration = 'line-through';
-          span.style.color = '#888';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'todo-content';
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'todo-text';
+        textSpan.textContent = todo.text;
+        
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'todo-date';
+        if (todo.date) {
+          dateSpan.textContent = formatDate(todo.date);
+        }
+        
+        const removeButton = document.createElement('button');
+        removeButton.className = 'todo-remove';
+        removeButton.innerHTML = 'x';
+        removeButton.title = 'Remove task';
+        removeButton.onclick = (e) => {
+          e.stopPropagation();
+          const todoIndex = todos.findIndex(t => t.id === todo.id);
+          if (todoIndex !== -1) {
+            todos.splice(todoIndex, 1);
+            saveTodos();
+            renderTodos();
+          }
+        };
+        dateSpan.onclick = (e) => {
+          e.stopPropagation();
+          const newDate = prompt('Enter new date (YYYY-MM-DD):', todo.date || '');
+          if (newDate !== null) {
+            const todoIndex = todos.findIndex(t => t.id === todo.id);
+            if (todoIndex !== -1) {
+              todos[todoIndex].date = newDate || null;
+              saveTodos();
+              renderTodos();
+            }
+          }
+        }
+        
+        contentDiv.appendChild(textSpan);
+        if (todo.date) {
+          contentDiv.appendChild(dateSpan);
         }
         
         li.appendChild(checkbox);
-        li.appendChild(span);
+        li.appendChild(contentDiv);
+        li.appendChild(removeButton);
         todoList.appendChild(li);
       });
     }
 
+    function updateClock() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateString = now.toLocaleDateString([], { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const currentTimeElement = document.getElementById('current-time');
+      const currentDateElement = document.getElementById('current-date');
+      
+      if (currentTimeElement) {
+        currentTimeElement.textContent = timeString;
+      }
+      
+      if (currentDateElement) {
+        currentDateElement.textContent = dateString;
+      }
+    }
+
     document.getElementById('add-todo').addEventListener('click', () => {
       const todoInput = document.getElementById('todo-input');
+      const todoDateInput = document.getElementById('todo-date');
       const newTodoText = todoInput.value.trim();
+      
       if (newTodoText) {
-        todos.push({ text: newTodoText, completed: false });
-        localStorage.setItem('todos', JSON.stringify(todos));
+        const newTodo = {
+          text: newTodoText,
+          completed: false,
+          date: todoDateInput.value || null,
+          id: Date.now() 
+        };
+        
+        todos.push(newTodo);
+        saveTodos();
         todoInput.value = '';
+        todoDateInput.value = '';
         renderTodos();
       }
     });
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const codingContainer = document.getElementById('coding-time-container');
-
+    document.getElementById('todo-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('add-todo').click();
+      }
     });
 
     window.onload = () => {
-      checkAndResetTodos();
+      loadTodos();
       renderTodos();
+      updateClock();
+      setInterval(updateClock, 1000);
     };
 });
