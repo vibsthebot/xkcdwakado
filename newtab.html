@@ -6,24 +6,25 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body class="newtab-body">
-    <div class="header-section">
-      <div class="compact-tile">
+    <div class="main-grid">
+      <div class="grid-item name-tile">
         <h1 class="newtab-h1 gradient">Hi <span id="display-input"></span></h1>
-        <p id="coding-time-container">
-          <a href="" target="_blank" rel="noopener noreferrer" id="coding-time-link">
-            <span id="display-time"></span>
-          </a>
-        </p>
       </div>
       
-      <div class="compact-tile clock-tile compact-clock">
-        <h2 class="newtab-h2"></h2>
-        <div id="current-time" class="clock-display"></div>
-        <div id="current-date" class="date-display"></div>
+      <div class="time-tile">
+        <div class="sub-tile clock-tile">
+          <div id="current-time" class="clock-display"></div>
+        </div>
+        <div class="sub-tile coding-tile">
+          <p id="coding-time-container">
+            <a href="" target="_blank" rel="noopener noreferrer" id="coding-time-link">
+              <span id="display-time" class="newtab-h2"></span>
+            </a>
+          </p>
+        </div>
       </div>
-    </div>
-    <div class="main-content">
-      <div class="comic-container">
+      
+      <div class="grid-item comic-tile">
         <a href="https://xkcd.com" target="_blank" rel="noopener noreferrer" class="comic-link">
           <img id="comic" src="" alt="Comic Image">
         </a>
@@ -31,7 +32,7 @@
         <p id="comic-alt"></p>
       </div>
       
-      <div id="todo-container">
+      <div class="grid-item todo-tile">
         <h2 class="newtab-h2">To-Do List</h2>
         <div class="todo-input-container">
           <input type="text" id="todo-input" class="newtab-input" placeholder="Enter a new task">
@@ -40,7 +41,6 @@
         </div>
         <ul id="todo-list" class="newtab-ul"></ul>
       </div>
-
     </div>
     <script src="newtab.js"></script>
   </body>

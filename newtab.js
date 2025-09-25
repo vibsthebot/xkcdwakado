@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
           const codingTimeLink = document.getElementById('coding-time-link');
           if (codingTimeLink) {
-            codingTimeLink.textContent = 'coding time today: ' + data.data.grand_total.text;
+            codingTimeLink.textContent = data.data.grand_total.text;
             codingTimeLink.href = new URL(apiUrl).origin;
           }
           console.log(data);
@@ -154,16 +154,34 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         dateSpan.onclick = (e) => {
           e.stopPropagation();
-          const newDate = prompt('Enter new date (YYYY-MM-DD):', todo.date || '');
-          if (newDate !== null) {
+          
+          const dateInput = document.createElement('input');
+          dateInput.type = 'date';
+          dateInput.value = todo.date || '';
+          dateInput.style.position = 'absolute';
+          dateInput.style.opacity = '0';
+          dateInput.style.pointerEvents = 'none';
+          
+          document.body.appendChild(dateInput);
+          
+          dateInput.onchange = () => {
             const todoIndex = todos.findIndex(t => t.id === todo.id);
             if (todoIndex !== -1) {
-              todos[todoIndex].date = newDate || null;
+              todos[todoIndex].date = dateInput.value || null;
               saveTodos();
               renderTodos();
             }
-          }
-        }
+            document.body.removeChild(dateInput);
+          };
+          
+          dateInput.onblur = () => {
+            if (document.body.contains(dateInput)) {
+              document.body.removeChild(dateInput);
+            }
+          };
+          
+          dateInput.click();
+        };
         
         contentDiv.appendChild(textSpan);
         if (todo.date) {
